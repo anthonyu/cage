@@ -1,7 +1,7 @@
 cage
 ====
 
-Creator of padded cells for untrusted applications.
+Creator of padded cells for untrusted Linux applications.
 ---------------------------------------------------
 
 Overview:
