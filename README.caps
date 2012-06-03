@@ -1,0 +1,104 @@
+
+             Implementing POSIX 1003.1e capabilities under Linux.
+
+Overview:
+
+   Due  to  the  lack  of  support  for  capabilities  in  current  Linux
+   filesystems, capabilities have been disabled in kernels released after
+   2.2.14.
+
+   Under  these  kernels,  privileges work in suser() emulation mode: any
+   process  whose  uid  is zero has a complete set of capabilities, while
+   all others have the empty set.
+
+   Unfortunately,  this prevents one from running proccesses with partial
+   capability sets.
+
+   Until  Linus  returns the kernel to it's documented behavior, one must
+   perform  a  bit of system tweaking if they wish to use capabilities as
+   intended.
+
+Procedure:
+
+  Raising the inital inheritable set:
+
+   Firstly,  you  must  alter  the initial inheritable set. This set will
+   become  the permitted and effective sets of those processes spawned by
+   init.
+
+   This  is  most  easily  done  by  installing a patched init(8). I have
+   provided  an  [1]i386  and  a [2]src RPM for those who use RedHat-like
+   distributions;  however, for everyone else there is also a [3]patch to
+   apply to sysvinit-2.78.
+
+   Alternately, you may modify the following line in <linux/capability.h>
+
+   #define CAP_INIT_INH_SET to_cap_t(0)
+
+   to look like this:
+
+   #define CAP_INIT_INH_SET to_cap_t(~0 & ~CAP_TO_MASK(CAP_SETPCAP))
+
+   and  recompile  your  kernel.  Both  methods  require a reboot to take
+   effect.
+
+  Setting up /proc/sys/kernel/cap-bound:
+
+   /proc/sys/kernel/cap-bound  is effectively a mask that the kernel uses
+   to  determine  which individual capabilities work in suser() emulation
+   mode.  Each  capability,  enumerated in <linux/capability.h>, is a bit
+   that if set, forces the capability to follow the legacy behavior.
+
+   Warning:  Attempting  this without first raising init(8)'s inheritable
+   set, as above, will lower ALL capabilities for all uids, rendering the
+   machine nearly useless.
+
+   To  turn  all  bits  in  the mask off, returning the kernel to 1003.1e
+   behavior, do the following:
+
+   # echo 0 >/proc/sys/kernel/cap-bound
+
+   Now you can use capabilities as they were intended.
+
+   The  impetus  to downgrade the kernel to the suser() behavior followed
+   the  discovery of [4]this setuid() problem. While I have not been able
+   to  reproduce  the  bug  in recent kernels, one would be safer keeping
+   CAP_SETUID's bit on in the bounding set.
+
+   CAP_SETUID is currently bit seven; therefore
+
+   # echo $((1 << 7)) >/proc/sys/kernel/cap-bound
+
+   will  leave  setuid() calls in suser() emulation mode, while promoting
+   the rest to POSIX 1003.1e behavior
+
+   Having  corrected  both  the  initial inheritable set and the bounding
+   set,  capabilites  should  now  work  as  advertised in the supporting
+   documentation.
+
+Downloads:
+
+     * [5]SysVinit-2.78-19Au.i386.rpm - [6]PGP signature
+     * [7]SysVinit-2.78-19Au.src.rpm - [8]PGP signature
+     * [9]sysvinit-2.78-capable.patch - [10]PGP signature
+
+Links:
+
+     * [11]Here is the official FAQ for Linux Process Capabilities.
+     * Now  that  you  have  capabilities working, use [12]cage to secure
+       your chroot jails.
+
+References
+
+   1. http://original.killa.net/infosec/caps/SysVinit-2.78-19Au.i386.rpm
+   2. http://original.killa.net/infosec/caps/SysVinit-2.78-19Au.src.rpm
+   3. http://original.killa.net/infosec/caps/sysvinit-2.78-capable.patch
+   4. http://www.securityfocus.com/bid/1322
+   5. http://original.killa.net/infosec/caps/SysVinit-2.78-19Au.i386.rpm
+   6. http://original.killa.net/infosec/caps/SysVinit-2.78-19Au.i386.rpm.asc
+   7. http://original.killa.net/infosec/caps/SysVinit-2.78-19Au.src.rpm
+   8. http://original.killa.net/infosec/caps/SysVinit-2.78-19Au.src.rpm.asc
+   9. http://original.killa.net/infosec/caps/sysvinit-2.78-capable.patch
+  10. http://original.killa.net/infosec/caps/sysvinit-2.78-capable.patch.asc
+  11. http://original.killa.net/cgi-bin/nph-redirect?http://ftp.kernel.org/pub/linux/libs/security/linux-privs/kernel-2.4/capfaq-0.2.txt
+  12. http://original.killa.net/infosec/cage/

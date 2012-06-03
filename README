@@ -1,0 +1,16 @@
+INSTALL has installation instructions.  The man page explains usage.
+
+README.md is a web friendly summary of both of the above.
+
+README.caps explains how to setup POSIX 1003.1e capabilities.  Without
+working capabilities, cage is equivalent to the vanilla chroot(8) command.
+
+The Attic directory contains some debugging tools and a patch for init(8).
+
+The poc directory contains some sample code showing methods of breaking
+chroot.  Any contributions will be welcome.
+
+Any bugs found should be reported via github issues at https://github.com/anthonyu/cage/issues
+
+Enjoy,
+Anthony

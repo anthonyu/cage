@@ -1,0 +1,143 @@
+.\" cage is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; see the file COPYING.  If not, write to
+.\" the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+.\"
+.\" $Id: cage.8.in,v 1.4 2001/11/06 12:40:47 anthonyu Exp $
+.\"
+.TH cage 8 "November 6, 2001" "cage VERSION" "Linux System Administrator's Manual"
+.SH "NAME"
+cage \- makes a nice padded cell for untrusted applications.
+.SH "SYNOPSIS"
+.B cage
+.RI [\-c\ \fIcaps\fR]\ [\-g\ \fIgid\fR]\ [\-u\ \fIuid\fR]\ [\-\-]\ \fInewroot\fR\ \fIcommand...\fR
+.SH "DESCRIPTION"
+\fBcage\fP is a creator of padded cells for untrusted applications.  Use it when you would like to chroot a program that wants to run as root. (e.g.  sendmail, sshd, etc.)
+.LP
+Ordinarily, applications run as root have the capabilities required to break out of their chroot jail; however, before executing your command,
+.B cage
+chroots into the directory you specify, then drops all privileges that would allow your command to bust out.  By default, the removed privileges currently include:
+.IP
+.PD 1
+.TP
+.PD 0
+.B CAP_SETPCAP
+Set capabilities on arbitrary processes.
+.PD 1
+.TP
+.PD 0
+.B CAP_SYS_MODULE
+The ability to insert loadable kernel modules that hijack systems calls.
+.PD 1
+.TP
+.PD 0
+.B CAP_SYS_RAWIO
+Read/write access to kernel memory, keyboard controller, I/O devices, etc.
+.PD 1
+.TP
+.PD 0
+.B CAP_SYS_CHROOT
+Allows a process to change its root directory, an easy way to break chroot.
+.PD 1
+.TP
+.PD 0
+.B CAP_SYS_PTRACE
+Attach to, and control the execution of, arbitrary processes.
+.PD 1
+.TP
+.PD 0
+.B CAP_SYS_ADMIN
+Allows mounting and unmounting of filesystems.
+.PD 1
+.TP
+.PD 0
+.B CAP_MKNOD
+Allows a process to create device nodes.
+.PD 1
+.LP
+.SH "OPTIONS"
+\fBcage\fP may be invoked with the following options:
+.PD 1
+.TP
+.PD 0
+.B -c \fIcaptext\fP
+.TP
+.BI --caps= captext
+Override the default capabilities of the executed command.  See the
+.SM
+.B "TEXTUAL REPRESENTATION"
+section of
+.BR cap_from_text (3)
+for a complete description of the syntax.
+.PD 1
+.TP
+.PD 0
+.B -g \fIgid\fP
+.TP
+.BI --gid= gid
+Run the executed command under group id \fIgid\fP.
+.PD 1
+.TP
+.PD 0
+.B -u \fIuid\fP
+.TP
+.BI --uid= uid
+Run the executed command under user id \fIuid\fP.  Note that the kernel will take away \fIall\fP capabilities if a process is run as a non-root user.
+.PD 1
+.TP
+.PD 0
+.B \-\-
+A
+.B \-\-
+signals the end of options and disables further option processing. Any
+arguments after the
+.B \-\-
+are treated as directory, command and arguments.
+.PD 1
+.TP
+.PD 0
+.B -h
+.TP
+.B --help
+Show usage info and exit successfully.
+.PD 1
+.TP
+.PD 0
+.B -v
+.TP
+.B --version
+Show version info and exit successfully.
+.PD 1
+.SH "EXAMPLES"
+To run
+.B sendmail
+under /home/sendmail the following command would be used:
+.IP
+.B cage -- /home/sendmail /usr/sbin/sendmail -bd -q15m
+.PP
+The `--' is only required if the command to be run has dashed arguments.
+.LP
+To run
+.B slapd
+under /home/ldap with only the capabilities required to bind to a privileged port:
+.IP
+.B cage -c cap_net_bind_service=eip /home/ldap slapd
+.PP
+.SH "SEE ALSO"
+.BR cap_from_text (3),
+http://original.killa.net/infosec/cage/
+.SH "AUTHOR"
+Anthony D. Urso <anthonyu@killa.net>.
+.SH "COPYRIGHT"
+Copyright \(co 2001 Anthony D. Urso.
+.br
+This is free software; see the source for copying conditions.  There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.

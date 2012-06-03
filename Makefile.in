@@ -1,0 +1,48 @@
+# $Id: Makefile.in,v 1.10 2001/11/19 09:32:15 anthonyu Exp $
+
+NAME = cage
+VER = 0.80
+
+CC = @CC@
+DEFS = -DVERSION=\"$(VER)\" @DEFS@
+CFLAGS = -s -O3 -Wall -pipe
+LIBS = @LIBS@
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+sbindir = @sbindir@
+mandir = @mandir@
+
+OBS = $(NAME).o
+
+$(NAME): $(OBS)
+	$(CC) $(CFLAGS) $^ -o $@ $(LIBS) $(DEFS)
+	@echo
+	@echo "You must set up POSIX 1003.1e capabilities before use."
+	@echo "Check the README.caps file for more info."
+
+$(NAME).8: $(NAME).8.in
+	sed -e's/VERSION/$(VER)/g' $(NAME).8.in >$(NAME).8
+
+.c.o: $<
+	$(CC) $(CFLAGS) -c $< $(DEFS)
+
+clean:
+	rm -f $(NAME) $(NAME).8 *.o core
+
+distclean: clean
+	rm -f Makefile config.h config.status config.cache config.log 
+
+install: $(NAME) $(NAME).8
+	install -m 0755 -o root -g root -d ${DESTDIR}$(sbindir)
+	install -m 0755 -o root -g root -d ${DESTDIR}$(mandir)/man8
+	install -m 0755 -o root -g root $(NAME) ${DESTDIR}$(sbindir)/$(NAME)
+	install -m 0644 -o root -g root $(NAME).8 ${DESTDIR}$(mandir)/man8/$(NAME).8
+
+dist: distclean
+	( cd ..; \
+	mv $(NAME) $(NAME)-$(VER); \
+	tar -zcvf $(NAME)-$(VER).tar.gz $(NAME)-$(VER) --exclude=*/RCS; \
+	tar -Zcvf $(NAME)-$(VER).tar.bz2 $(NAME)-$(VER) --exclude=*/RCS; \
+	mv $(NAME)-$(VER) $(NAME) )
+

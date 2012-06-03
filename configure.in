@@ -1,0 +1,21 @@
+dnl $Id: configure.in,v 1.3 2001/08/28 07:41:46 anthonyu Exp $
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(cage.c)
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_INSTALL
+
+dnl Checks for libraries.
+
+dnl Checks for header files.
+AC_HEADER_STDC
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_LANG_C
+
+dnl Checks for library functions.
+AC_CHECK_LIB(cap, cap_set_proc)
+
+AC_CONFIG_HEADER(config.h)
+AC_OUTPUT(Makefile)

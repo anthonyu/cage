@@ -1,0 +1,63 @@
+diff -Nurd sysvinit-2.83-orig/src/init.c sysvinit-2.83/src/init.c
+--- sysvinit-2.83-orig/src/init.c	Tue Oct  2 14:25:23 2001
++++ sysvinit-2.83/src/init.c	Mon Nov 19 01:11:41 2001
+@@ -29,6 +29,13 @@
+  */
+ 
+ #include <sys/types.h>
++
++#include <linux/capability.h>
++#include <linux/unistd.h>
++
++_syscall2(int, capget, cap_user_header_t, header, cap_user_data_t, data)
++_syscall2(int, capset, cap_user_header_t, header, const cap_user_data_t, data)
++
+ #include <sys/stat.h>
+ #include <sys/ioctl.h>
+ #include <sys/wait.h>
+@@ -2296,6 +2303,10 @@
+   sigset_t sgt;
+   struct sigaction sa;
+ 
++  cap_user_header_t head;
++  cap_user_data_t data;
++
++
+   if (!reload) {
+   
+ #if INITDEBUG
+@@ -2380,6 +2391,34 @@
+ 		}
+   		SETSIG(sa, SIGCHLD,  chld_handler, SA_RESTART);
+   	}
++
++	/*
++	 *	This seems like the right place to do this, just before
++	 *	we read /etc/inittab...
++	 */
++
++	head = malloc(8);
++	data = malloc(3 * 4);  /* three 32 bit numbers... */
++
++	if (head && data) {
++		head->pid     = 0;
++		head->version = _LINUX_CAPABILITY_VERSION;
++
++		if (capget(head, data) == 0) {
++			/* Max out the inheritable capability set. */
++			data->inheritable = data->effective;
++
++			if (capset(head, data) == 0) {
++				log(L_CO, bootmsg, "set inheritable caps");
++			} else log(L_CO, bootmsg,
++					"unable to set inheritable caps");
++		} else log(L_CO, bootmsg, "not setting inheritable caps");
++
++		free(head);
++		free(data);
++
++	}
++
+ 
+   	/*
+ 	 *	Start normal boot procedure.

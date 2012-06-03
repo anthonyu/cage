@@ -1,0 +1,25 @@
+Installation is straightforward.
+
+For cap text support, optionally install libcap:
+
+	http://www.kernel.org/pub/linux/libs/security/linux-privs/kernel-2.4/libcap-1.10.tar.gz
+
+Untar the sources:
+
+	$ tar -zxf cage-0.80.tar.gz
+
+Change into the source directory:
+
+	$ cd cage-0.80
+
+Configure it:
+
+	$ ./configure
+
+Make and install the binary and man page:
+
+	# make install
+
+Setup POSIX 1003.1e behavior:
+
+	http://original.killa.net/infosec/caps.html or README.caps
